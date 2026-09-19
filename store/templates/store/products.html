@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loyiha Boshqaruv Paneli</title>
+    <link href="https://jsdelivr.net" rel="stylesheet">
+    <style>
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .card { border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-radius: 12px; }
+        .badge-db { background-color: #dc3545; }
+        .badge-redis { background-color: #198754; }
+    </style>
+</head>
+<body>
+
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="fw-bold text-dark">Loyiha Boshqaruv Markazi</h1>
+        <p class="text-muted">Django + Redis Cache + Celery bitta oynada</p>
+    </div>
+
+    <div class="card p-4 mb-4 bg-white">
+        <h5 class="fw-bold text-secondary mb-3">Tizim amallari</h5>
+        <div class="d-flex flex-wrap gap-3">
+
+            <button onclick="sendSMS()" class="btn btn-primary px-4 py-2 fw-semibold" id="smsBtn">
+                💬 Celery orqali SMS Yuborish (Fonda)
+            </button>
+        </div>
+        <div id="smsStatus" class="mt-3 alert alert-success d-none" role="alert"></div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card p-4 text-center bg-white">
+                <h6 class="text-muted mb-2">Kesh holati (Ma'lumot manbasi)</h6>
+                <h3>
+                    {% if "Database" in source %}
+                        <span class="badge badge-db p-2 fs-5">{{ source }}</span>
+                    {% else %}
+                        <span class="badge badge-redis p-2 fs-5">{{ source }}</span>
+                    {% endif %}
+                </h3>
+                <small class="text-muted mt-2">Sahifani yangilasangiz (F5), manba o'zgaradi</small>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card p-4 text-center bg-white">
+                <h6 class="text-muted mb-2">Omborda jami mahsulotlar</h6>
+                <h3 class="fw-bold text-primary display-6">{{ count }} ta</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="card p-4 bg-white">
+        <h4 class="mb-3 text-secondary fw-bold">Mavjud mahsulotlar</h4>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th># ID</th>
+                        <th>Mahsulot nomi</th>
+                        <th>Narxi</th>
+                        <th>Ombordagi qoldiq</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td class="fw-bold text-muted">#{{ product.id }}</td>
+                        <td class="fw-semibold">{{ product.name }}</td>
+                        <td class="text-success fw-bold">{{ product.price }} so'm</td>
+                        <td>
+                            {% if product.stock > 0 %}
+                                <span class="badge bg-info text-dark p-2">{{ product.stock }} ta qoldi</span>
+                            {% else %}
+                                <span class="badge bg-danger p-2">Tugagan</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">Hozircha mahsulotlar yo'q. Admin paneldan qo'shing.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function sendSMS() {
+    const btn = document.getElementById('smsBtn');
+    const statusDiv = document.getElementById('smsStatus');
+
+    btn.disabled = true;
+    btn.innerText = "Yuborilmoqda...";
+
+    fetch('/api/send-sms/')
+    .then(response => response.json())
+    .then(data => {
+        statusDiv.classList.remove('d-none');
+        statusDiv.innerText = "Muvaffaqiyatli: " + data.message;
+        btn.disabled = false;
+        btn.innerText = "💬 Celery orqali SMS Yuborish (Fonda)";
+    })
+    .catch(error => {
+        statusDiv.classList.remove('d-none');
+        statusDiv.className = "mt-3 alert alert-danger";
+        statusDiv.innerText = "Xatolik yuz berdi!";
+        btn.disabled = false;
+        btn.innerText = "💬 Celery orqali SMS Yuborish (Fonda)";
+    });
+}
+</script>
+
+</body>
+</html>
