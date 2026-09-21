@@ -128,7 +128,6 @@ MAILERS = {
     },
 }
 
-import os
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1")
 
@@ -138,10 +137,10 @@ CACHES = {
         "LOCATION": REDIS_URL,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "REDIS_CLIENT_KWARGS": {"protocol": 2}
         }
     }
 }
+
 
 
 
