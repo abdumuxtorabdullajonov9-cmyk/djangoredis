@@ -131,21 +131,34 @@ MAILERS = {
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1")
 
+import os
+from urllib.parse import urlparse
+
+REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1")
+
+parsed_url = urlparse(REDIS_URL)
+is_secure = parsed_url.scheme == "rediss"
+
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": REDIS_URL,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "CONNECTION_POOL_KWARGS": {
+                "max_connections": 20,
+                "retry_on_timeout": True,
+            },
+            "REDIS_CLIENT_KWARGS": {
+                "ssl_cert_reqs": "none" if is_secure else None
+            } if is_secure else {}
         }
     }
 }
 
-
-
-
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
+
 
 
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379/2")
